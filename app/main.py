@@ -2,10 +2,10 @@ import socket  # noqa: F401
 
 def response(client_socket, request):
     decoded_request = request.decode("utf-8").split()
-    if decoded_request[1] == '/abcdefg':
-        response = b"HTTP/1.1 404 Not Found\r\n\r\n"
-    elif decoded_request[1] == '/':
+    if decoded_request[1] == '/':
         response = b"HTTP/1.1 200 OK\r\n\r\n"
+    else:
+        response = b"HTTP/1.1 404 Not Found\r\n\r\n"
     client_socket.send(response)
     
 
