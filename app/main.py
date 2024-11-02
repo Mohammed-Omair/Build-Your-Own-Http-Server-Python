@@ -1,4 +1,13 @@
 import socket  # noqa: F401
+import threading
+
+def handle_client(client_socket):
+    # Receive the client's request
+    request = client_socket.recv(1024)
+    # Process and respond to the client
+    response(client_socket, request)
+    # Close the client connection
+    client_socket.close()
 
 def response(client_socket, request):
     decoded_request = request.decode("utf-8").split()
@@ -19,11 +28,16 @@ def response(client_socket, request):
 
 
 def main():
-    
+    # Create the server socket
     server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
-    client_socket, client_address = server_socket.accept() # wait for client
-    request = client_socket.recv(1024)
-    response(client_socket, request)
+
+    while True:
+        # Accept a new client connection
+        client_socket, client_address = server_socket.accept()
+
+        # Create a new thread to handle the client connection
+        client_thread = threading.Thread(target=handle_client, args=(client_socket,))
+        client_thread.start()
 
 
 if __name__ == "__main__":
