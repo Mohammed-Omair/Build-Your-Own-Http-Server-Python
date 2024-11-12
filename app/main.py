@@ -50,7 +50,7 @@ def response(client_socket, request, args):
 
 def main():
     # Create the server socket
-    server_socket = socket.create_server(("localhost", 4221), reuse_port=False)
+    server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
 
     while True:
         # Accept a new client connection
