@@ -21,29 +21,36 @@ def file_details(file_path):
 def response(client_socket, request, args):
     decoded_request = request.decode("utf-8").split()
     file_path = args[-1] + (decoded_request[1].split("/")[-1])
-    if decoded_request[1] == '/':
-        response = b"HTTP/1.1 200 OK\r\n\r\n"
-    elif "echo" in decoded_request[1]:
-        echo_endpoint = decoded_request[1].split("/")[2]
-        response = f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(echo_endpoint)}\r\n\r\n{echo_endpoint}"
-        response = response.encode("utf-8")
-    elif "user-agent" in decoded_request[1]:
-        user_agent_endpoint = decoded_request[-1]
-        response = f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(user_agent_endpoint)}\r\n\r\n{user_agent_endpoint}"
-        response = response.encode("utf-8")
-    elif "files" in decoded_request[1] and os.path.exists(file_path):
-        file_size, file_data = file_details(file_path)
-        response = f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {file_size}\r\n\r\n{file_data}"
-        response = response.encode("utf-8")
-    else:
-        response = b"HTTP/1.1 404 Not Found\r\n\r\n"
+    if decoded_request[0] == "GET":
+        if decoded_request[1] == '/':
+            response = b"HTTP/1.1 200 OK\r\n\r\n"
+        elif "echo" in decoded_request[1]:
+            echo_endpoint = decoded_request[1].split("/")[2]
+            response = f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(echo_endpoint)}\r\n\r\n{echo_endpoint}"
+            response = response.encode("utf-8")
+        elif "user-agent" in decoded_request[1]:
+            user_agent_endpoint = decoded_request[-1]
+            response = f"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {len(user_agent_endpoint)}\r\n\r\n{user_agent_endpoint}"
+            response = response.encode("utf-8")
+        elif "files" in decoded_request[1] and os.path.exists(file_path):
+            file_size, file_data = file_details(file_path)
+            response = f"HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {file_size}\r\n\r\n{file_data}"
+            response = response.encode("utf-8")
+        else:
+            response = b"HTTP/1.1 404 Not Found\r\n\r\n"
+    elif decoded_request[0] == "POST":
+        if "files" in decoded_request[1]:
+            data = decoded_request[-1]
+            with open(file_path, "w") as f:
+                f.write(data)
+            response = b"HTTP/1.1 201 Created\r\n\r\n"
     client_socket.send(response)
     
 
 
 def main():
     # Create the server socket
-    server_socket = socket.create_server(("localhost", 4221), reuse_port=True)
+    server_socket = socket.create_server(("localhost", 4221), reuse_port=False)
 
     while True:
         # Accept a new client connection
