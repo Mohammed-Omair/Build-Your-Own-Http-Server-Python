@@ -6,7 +6,6 @@ import os
 def handle_client(client_socket):
     # Receive the client's request
     request = client_socket.recv(1024)
-    # Process and respond to the client
     args = sys.argv
     response(client_socket, request, args)
     # Close the client connection
@@ -40,7 +39,9 @@ def response(client_socket, request, args):
             response = b"HTTP/1.1 404 Not Found\r\n\r\n"
     elif decoded_request[0] == "POST":
         if "files" in decoded_request[1]:
-            data = decoded_request[-1]
+            position = request.find(b"\r\n\r\n")
+            body = request[position + 4:]
+            data = body.decode("utf-8")
             with open(file_path, "w") as f:
                 f.write(data)
             response = b"HTTP/1.1 201 Created\r\n\r\n"
