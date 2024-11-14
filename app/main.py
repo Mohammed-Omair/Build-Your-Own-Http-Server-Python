@@ -45,6 +45,15 @@ def response(client_socket, request, args):
             with open(file_path, "w") as f:
                 f.write(data)
             response = b"HTTP/1.1 201 Created\r\n\r\n"
+    if b"Accept-Encoding" in request and b"gzip" in request:
+        response = response.decode("utf-8")
+        header_part, body_part = response.split("\r\n\r\n", 1)
+        # Add the new header
+        header_part += "\r\nContent-Encoding: gzip"
+        # Reassemble the response
+        response = f"{header_part}\r\n\r\n{body_part}"
+        response = response.encode("utf-8")
+
     client_socket.send(response)
     
 
