@@ -2,6 +2,7 @@ import socket  # noqa: F401
 import threading
 import sys
 import os
+import gzip
 
 def handle_client(client_socket):
     # Receive the client's request
@@ -48,12 +49,19 @@ def response(client_socket, request, args):
     if b"Accept-Encoding" in request and b"gzip" in request:
         response = response.decode("utf-8")
         header_part, body_part = response.split("\r\n\r\n", 1)
+        compressed_data = gzip.compress(body_part.encode("utf-8"))  # Compressing as gzip
         # Add the new header
+        updated_file_size = len(compressed_data)  # or any new size you need to set
+        header_lines = header_part.split("\r\n")
+        header_part = "\r\n".join(
+            line if not line.startswith("Content-Length:") else f"Content-Length: {updated_file_size}"
+            for line in header_lines
+        )
         header_part += "\r\nContent-Encoding: gzip"
         # Reassemble the response
-        response = f"{header_part}\r\n\r\n{body_part}"
+        response = f"{header_part}\r\n\r\n"
         response = response.encode("utf-8")
-
+        response += compressed_data
     client_socket.send(response)
     
 
